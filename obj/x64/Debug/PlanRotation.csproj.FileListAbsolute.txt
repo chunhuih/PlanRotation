@@ -1,0 +1,13 @@
+W:\Projects\PlanRotation\bin\debug\PlanRotation.exe.config
+W:\Projects\PlanRotation\bin\debug\PlanRotation.exe
+W:\Projects\PlanRotation\bin\debug\PlanRotation.pdb
+W:\Projects\PlanRotation\bin\debug\VMS.TPS.Common.Model.API.dll
+W:\Projects\PlanRotation\bin\debug\VMS.TPS.Common.Model.Types.dll
+W:\Projects\PlanRotation\bin\debug\VMS.TPS.Common.Model.API.xml
+W:\Projects\PlanRotation\bin\debug\VMS.TPS.Common.Model.Types.xml
+W:\Projects\PlanRotation\obj\x64\Debug\PlanRotation.csproj.AssemblyReference.cache
+W:\Projects\PlanRotation\obj\x64\Debug\PlanRotation.csproj.SuggestedBindingRedirects.cache
+W:\Projects\PlanRotation\obj\x64\Debug\PlanRotation.csproj.CoreCompileInputs.cache
+W:\Projects\PlanRotation\obj\x64\Debug\PlanRotation.csproj.CopyComplete
+W:\Projects\PlanRotation\obj\x64\Debug\PlanRotation.exe
+W:\Projects\PlanRotation\obj\x64\Debug\PlanRotation.pdb

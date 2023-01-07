@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanRotation", "PlanRotation.csproj", "{DAA9548A-C5FA-41F9-99C9-B78C42C3C44D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DAA9548A-C5FA-41F9-99C9-B78C42C3C44D}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{DAA9548A-C5FA-41F9-99C9-B78C42C3C44D}.Debug|Any CPU.Build.0 = Debug|x64
+		{DAA9548A-C5FA-41F9-99C9-B78C42C3C44D}.Debug|x64.ActiveCfg = Debug|x64
+		{DAA9548A-C5FA-41F9-99C9-B78C42C3C44D}.Debug|x64.Build.0 = Debug|x64
+		{DAA9548A-C5FA-41F9-99C9-B78C42C3C44D}.Release|Any CPU.ActiveCfg = Release|x64
+		{DAA9548A-C5FA-41F9-99C9-B78C42C3C44D}.Release|Any CPU.Build.0 = Release|x64
+		{DAA9548A-C5FA-41F9-99C9-B78C42C3C44D}.Release|x64.ActiveCfg = Release|x64
+		{DAA9548A-C5FA-41F9-99C9-B78C42C3C44D}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {83FC9976-0F82-408D-88C3-3E8B6E5BF394}
+	EndGlobalSection
+EndGlobal
