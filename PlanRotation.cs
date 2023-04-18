@@ -11,13 +11,6 @@ using System.Windows.Documents;
 using System.Windows.Controls;
 
 
-///////////////////////////////////////
-// 6/22/2022:
-// I am updating the code for the following functions:
-// 1. Create MLC leaf array dynamically so that it can accommodate different number of MLC leaves.
-// 2. Add support for Halcyon / Ethos linacs
-//////////////////////////////////////
-
 // TODO: Replace the following version attributes by creating AssemblyInfo.cs. You can do this in the properties of the Visual Studio project.
 [assembly: AssemblyVersion("1.0.1.3")]
 [assembly: AssemblyFileVersion("1.0.1.3")]
@@ -34,7 +27,7 @@ namespace PlanRotation
         static void Main(string[] args)
         {
             string logName = System.AppDomain.CurrentDomain.FriendlyName + ".log";
-            using (StreamWriter w = File.AppendText(logName))
+            using (StreamWriter w = File.CreateText(logName))
             {
                 w.AutoFlush = true;
                 string log = "Start of the app: " + System.AppDomain.CurrentDomain.FriendlyName;
@@ -64,112 +57,56 @@ namespace PlanRotation
             w.Write($"{DateTime.Now.ToLongTimeString()} {DateTime.Now.ToLongDateString()}");
             w.WriteLine($": {logMessage}");
         }
+        public static void WriteInColor(string s, ConsoleColor color = ConsoleColor.White)
+        {
+            Console.ForegroundColor = color;
+            Console.Write(s);
+            Console.ResetColor();
+        }
         private static float[,] Rotated(float[,] orig)
         {
             int L1 = 28;
-            int L2 = 57;
+            int L2 = 29;
             var newLeaves = orig.Clone() as float[,];
             for (int i = 0; i < L1; i++)
             {
-                if (Math.Abs(Math.Abs(orig[1, L1 - i - 1]) - 140) < 0.5)
+                if (Math.Abs(orig[1, L1 - i - 1]) > 139.5 &&
+                    Math.Abs(orig[0, L1 - i - 1]) > 139.5 &&
+                    orig[1, L1 - i - 1] == orig[0, L1 - i - 1])
                 {
                     newLeaves[0, i] = orig[0, L1 - i - 1];
-                }
-                else
-                {
-                    newLeaves[0, i] = -orig[1, L1 - i - 1];
-                }
-                if (Math.Abs(Math.Abs(orig[0, L1 - i - 1]) - 140) < 0.5)
-                {
                     newLeaves[1, i] = orig[1, L1 - i - 1];
                 }
                 else
                 {
+                    newLeaves[0, i] = -orig[1, L1 - i - 1];
                     newLeaves[1, i] = -orig[0, L1 - i - 1];
                 }
             }
-            for (int i = 28; i < L2; i++)
+            for (int i = 0; i < L2; i++)
             {
-                if (Math.Abs(Math.Abs(orig[1, L2 + 28 - i - 1] - 140)) < 0.5)
+                if (Math.Abs(orig[1, L2 + L1 - i - 1]) > 139.5 &&
+                    Math.Abs(orig[0, L2 + L1 - i - 1]) > 139.5 &&
+                    orig[1, L2 + L1 - i - 1] == orig[0, L2 + L1 - i - 1])
                 {
-                    newLeaves[0, i] = orig[0, L2 + 28 - i - 1];
+                    newLeaves[0, L1 + i] = orig[0, L1 + L2 - i - 1];
+                    newLeaves[1, L1 + i] = orig[1, L1 + L2 - i - 1];
                 }
                 else
                 {
-                    newLeaves[0, i] = -orig[1, L2 + 28 - i - 1];
-                }
-                if (Math.Abs(Math.Abs(orig[0, L2 + 28 - i - 1]) - 140) < 0.5)
-                {
-                    newLeaves[1, i] = orig[1, L2 + 28 - i - 1];
-                }
-                else
-                {
-                    newLeaves[1, i] = -orig[0, L2 + 28 - i - 1];
+                    newLeaves[0, L1 + i] = -orig[1, L1 + L2 - i - 1];
+                    newLeaves[1, L1 + i] = -orig[0, L1 + L2 - i - 1];
                 }
             }
             return newLeaves;
-        }
-        private static float[,] Flipped(float[,] orig)
-        {
-            int L1 = 28;
-            int allPairs = 57;
-            var ri = L1 - 1;
-            var li = 0;
-            var retval = orig.Clone() as float[,];
-            //
-            // L1
-            //
-            for (; li<ri; li++, ri--)
-            {
-                var tmp1 = retval[0, li];
-                var tmp2 = retval[1, li];
-                retval[0, li] = retval[0, ri];
-                retval[1, li] = retval[1, ri];
-                retval[0, ri] = tmp1;
-                retval[1, ri] = tmp2;
-            }
-            //
-            // L2
-            //
-            ri = allPairs - 1;
-            li = L1;
-            for (; li<ri; li++, ri--)
-            {
-                var tmp1 = retval[0, li];
-                var tmp2 = retval[1, li];
-                retval[0, li] = retval[0, ri];
-                retval[1, li] = retval[1, ri];
-                retval[0, ri] = tmp1;
-                retval[1, ri] = tmp2;
-            }
-            return retval;
-        }
-        private static float[,] FlippedStatic(float[,] orig)
-        {
-            int L1 = 28;
-            var ri = L1 - 1;
-            var li = 0;
-            var retval = orig.Clone() as float[,];
-            for (; li < ri; li++, ri--)
-            {
-                var tmp1 = retval[0, li];
-                var tmp2 = retval[1, li];
-                retval[0, li] = retval[0, ri];
-                retval[1, li] = retval[1, ri];
-                retval[0, ri] = tmp1;
-                retval[1, ri] = tmp2;
-            }
-            return retval;
         }
         static void Execute(Application app)
         {
             string logName = System.AppDomain.CurrentDomain.FriendlyName + ".log";
             Console.Clear();
-            Console.WriteLine("=========================================================================\n");
-            Console.WriteLine("This is an external beam plan modification application.\n");
-            Console.WriteLine("It rotates treatment beams as a result of patient orientation change.\n");
-            Console.WriteLine("Please read application instructions for details.\n");
-            Console.WriteLine("=========================================================================\n");
+            Console.WriteLine("============================================================================\n");
+            Console.WriteLine("This application rotates treatment beams after patient orientation change.\n");
+            Console.WriteLine("============================================================================\n");
             Console.Write("Please enter the patient ID: ");
             Console.ForegroundColor = ConsoleColor.Yellow;
             string mrn = Console.ReadLine();
@@ -177,14 +114,14 @@ namespace PlanRotation
             var patient = app.OpenPatientById(mrn);
             if (patient == null)
             {
-                Console.WriteLine("ERROR: This patient ID does not exist.\n");
+                WriteInColor("ERROR: This patient ID does not exist.\n", ConsoleColor.Red);
                 Console.WriteLine("Please use a correct patient ID and run this application again.\n");
                 return;
             }
             int nCourses = patient.Courses.Count();
             if (nCourses == 0)
             {
-                Console.WriteLine("ERROR: This patient does not contain any course.\n");
+                WriteInColor("ERROR: This patient does not contain any course.\n", ConsoleColor.Red);
                 Console.WriteLine("Please choose another patient with existing courses and run this application again.\n");
                 return;
             }
@@ -195,27 +132,27 @@ namespace PlanRotation
             }
             if (nPlans == 0)
             {
-                Console.WriteLine("ERROR: This patient does not contain any plan.\n");
+                WriteInColor("ERROR: This patient does not contain any plan.\n", ConsoleColor.Red);
                 Console.WriteLine("Please choose another patient with existing plans and run this application again.\n");
                 return;
             }
-            Console.WriteLine($"Found {nPlans} plan(s) in {nCourses} courses for this patient with ID: {mrn}.");
-            Console.WriteLine("Please choose the course and plan from the list below:");
+            Console.WriteLine($"Found the following {nPlans} plan(s) in {nCourses} courses for this patient (ID: {mrn}):");
+            WriteInColor($"{string.Format("{0, -18}", "Course ID")}      Plan ID\n", ConsoleColor.Yellow);
             foreach (Course eachCourse in patient.Courses)
             {
                 foreach (PlanSetup eachPlan in eachCourse.PlanSetups)
                 {
-                    Console.WriteLine($"{patient.Id}\t\"{eachCourse.Id}\"\t\"{eachPlan.Id}\"");
+                    Console.WriteLine($"{string.Format("{0, -18}", $"{eachCourse.Id}")}      {eachPlan.Id}");
                 }
             }
-            Console.Write("First please enter the course ID for your plan: ");
+            Console.Write("First please enter the course ID: ");
             Console.ForegroundColor = ConsoleColor.Yellow;
             string courseID = Console.ReadLine();
             Console.ResetColor();
             var courses = patient.Courses.Where(c => c.Id == courseID);
             if (!courses.Any())
             {
-                Console.WriteLine("ERROR: The course ID is not found.");
+                WriteInColor("ERROR: This course ID is not found.\n", ConsoleColor.Red);
                 Console.WriteLine("Please choose a patient with a course and run this application again.");
                 return;
             }
@@ -227,36 +164,43 @@ namespace PlanRotation
             var plans = course.PlanSetups.Where(p => p.Id == planName);
             if (!plans.Any())
             {
-                Console.WriteLine("ERROR: This plan ID is not found. Program will exit.");
+                WriteInColor("ERROR: This plan ID is not found.\n", ConsoleColor.Red);
                 Console.WriteLine("Please choose a patient with an external beam plan and run this application again.");
                 return;
             }
             var planSetup = plans.Single();  // It will throw an exception if there is not exactly one instance.
             if (planSetup.PlanType != PlanType.ExternalBeam)
             {
-                Console.WriteLine($"ERROR: The plan type is: {planSetup.PlanType}");
+                WriteInColor($"ERROR: The plan type is: {planSetup.PlanType}\n", ConsoleColor.Red);
                 Console.WriteLine("Please choose an external beam plan and run this application again.");
                 return;
             }
             // Check if beams are defined for this plan.
             if (planSetup.Beams.Count() == 0)
             {
-                Console.WriteLine($"ERROR: The plan has no beams defined.");
+                WriteInColor($"ERROR: This plan has no beams defined.\n", ConsoleColor.Red);
                 Console.WriteLine("Please choose an external beam plan with beams and run this application again.");
                 return;
             }
             // print beam information.
             Console.WriteLine("Here is a list of all the beams in this plan:");
+            string header = string.Format("{0,-8}", "Beam ID");
+            header += "  " + string.Format("{0, -10}", "Beam name");
+            header += "  " + string.Format("{0,-5}", "Type");
+            header += "  " + string.Format("{0,-14}", "Machine model");
+            header += "  " + string.Format("{0,-10}", "Technique");
+            header += "  " + string.Format("{0,-10} \n", "MLC type");
+            WriteInColor(header, ConsoleColor.Yellow);
             foreach (var beam in planSetup.Beams)
             {
-                Console.Write($"Beam ID: \"{beam.Id}\"\t");
-                Console.Write($"Beam name: \"{beam.Name}\"\t");
+                string line = string.Format("{0 ,-8}", beam.Id);
+                line += "  " + string.Format("{0, -10}", $"\"{beam.Name}\"");
                 string fldType = beam.IsSetupField ? "Setup" : "Tx";
-                Console.Write($"Beam type: \"{fldType}\"\t");
-                Console.Write($"Machine model: \"{beam.TreatmentUnit.MachineModel}\"\t");
-                Console.Write($"Machine model name: \"{beam.TreatmentUnit.MachineModelName}\"\t");
-                Console.Write($"Technique: \"{beam.Technique}\"\t");
-                Console.WriteLine($"MLC type: \"{beam.MLCPlanType}\"");
+                line += "  " + string.Format("{0, -5}", fldType);
+                line += "  " + string.Format("{0, -14}", beam.TreatmentUnit.MachineModel);
+                line += "  " + string.Format("{0, -10}", beam.Technique);
+                line += "  " + string.Format("{0, -10}\n", beam.MLCPlanType);
+                WriteInColor(line);
             }
             // check if treatment beams are defined.
             int numTxBeams = 0;
@@ -269,13 +213,92 @@ namespace PlanRotation
             }
             if (numTxBeams == 0)
             {
-                Console.WriteLine($"ERROR: The plan has no treatment beams.");
-                Console.WriteLine("Please choose an External Beam plan with treatment beams and run this application again.");
+                WriteInColor($"ERROR: This plan has no treatment beams.\n", ConsoleColor.Red);
+                Console.WriteLine("Please choose an external beam plan with treatment beams and run this application again.");
                 return;
             }
             else
             {
                 Console.WriteLine($"{numTxBeams} treatment field(s) were found.");
+            }
+            Console.WriteLine("============================================================================================\n");
+            Console.WriteLine("We are going to rotate treatment beams in this treatment plan.");
+            Console.WriteLine("Please verify if the current patient orientation is correct.");
+            Console.Write($"The current patient orientation in this treatment plan is ");
+            WriteInColor($"{planSetup.TreatmentOrientation}.\n", ConsoleColor.Yellow);
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write("Are you sure that you want to rotate treatment beams in this plan? (Y/N): ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            string response = Console.ReadLine();
+            Console.ResetColor();
+            if (response.ToLower() != "y")
+            {
+                WriteInColor("Application exits. No change is made to this treatment plan.", ConsoleColor.Red);
+                return;
+            }
+            ExternalPlanSetup extPlanSetup = planSetup as ExternalPlanSetup;
+            Console.Write("Before changes are made, do you want to first make a backup copy of this plan? (Y/N): ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            response = Console.ReadLine();
+            Console.ResetColor();
+            using (StreamWriter w = File.AppendText(logName))  // record some log data
+            {
+                w.AutoFlush = true;
+                string log = $"Begin modification of plan \"{extPlanSetup.Id}\" in the course \"{extPlanSetup.Course.Id}\" for patient: {patient.Id}: \"{patient.Name}\". ";
+                Log(log, w);
+            }
+            patient.BeginModifications();
+            if (response.ToLower() == "y")
+            {
+                PlanSetup backupPlan = course.CopyPlanSetup(extPlanSetup);
+                for (int i = 1; i <= 99; i++)
+                {
+                    if (backupPlan.Id == $"backup{i}")
+                    {
+                        break;
+                    }
+                    if (course.PlanSetups.Where(p => p.Id == $"backup{i}").Any() == false)
+                    {
+                        backupPlan.Id = $"backup{i}";
+                        break;
+                    }
+                }
+                WriteInColor($"A backup plan was created with ID: {backupPlan.Id}\n", ConsoleColor.Yellow);
+                app.SaveModifications();
+            }
+            bool isStaticBeamPlan = false;
+            bool isDynamicBeamPlan = false;
+            bool isArcBeamPlan = false;
+            bool isSX2MLC = false;
+            bool isHalcyon = false;
+            foreach (var beam in extPlanSetup.Beams)
+            {
+                if (beam.IsSetupField == false && beam.IsImagingTreatmentField == false)
+                {
+                    if (beam.Technique.ToString() == "STATIC")
+                    {
+                        // Here we assume that if one treatment beam is a static beam, then all the beams
+                        // in this treatment plan must be static beams.
+                        isStaticBeamPlan = true;
+                    }
+                    if (beam.Technique.ToString().ToLower().Contains("arc"))
+                    {
+                        // Here we assume that if one treatment beam is a VMAT or arc beam, then all the beams
+                        // in this treatment plan must be VMAT or arc beams.
+                        isArcBeamPlan = true;
+                    }
+                    if (beam.MLC.Model == "SX2")
+                    {
+                        // Here we assume that it is a Halcyon or Ethos linac, because the "SX2" MLC only
+                        // appears on such linacs.
+                        isSX2MLC = true;
+                    }
+                    if (beam.TreatmentUnit.MachineModel == "RDS")
+                    {
+                        // Here we assume that it is a Halcyon or Ethos linac
+                        isHalcyon = true;
+                    }
+                }
             }
             // Based on print out results of some test plans, the LeafPositions array for MLC leave positions at each control point 
             // is stored in a two-dimensional array.
@@ -317,76 +340,6 @@ namespace PlanRotation
             // There is one property: PlanSetup.TreatmentOrientation, but it does not have a setter.
             // So, this application assumes that the treatment orientation is manually updated by the user before running this application.
             // 
-            Console.WriteLine("============================================================================================\n");
-            Console.WriteLine("We are going to update the beams in this treatment plan to match patient orientation change.");
-            Console.WriteLine("We assume that this treatment plan already has the patient orientation changed.");
-            Console.Write($"The orientation of this treatment plan is ");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"{planSetup.TreatmentOrientation}.");
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("Are you sure that you want to change the beams in this plan? (Y/N): ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            string response = Console.ReadLine();
-            Console.ResetColor();
-            if (response.ToLower() != "y")
-            {
-                Console.WriteLine("Application exits. Please choose a suitable plan for this application");
-                return;
-            }
-            ExternalPlanSetup extPlanSetup = planSetup as ExternalPlanSetup;
-            Console.Write("Do you want to make a backup copy of this plan first? (Y/N): ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            response = Console.ReadLine();
-            Console.ResetColor();
-            patient.BeginModifications();
-            if (response.ToLower() == "y")
-            {
-                PlanSetup backupPlan = course.CopyPlanSetup(extPlanSetup);
-                for (int i = 1; i <= 99; i++)
-                {
-                    if (course.PlanSetups.Where(p => p.Id == $"backup{i}").Any() == false)
-                    {
-                        backupPlan.Id = $"backup{i}";
-                        break;
-                    }
-                }
-                Console.WriteLine($"The plan was copied with ID: {backupPlan.Id}");
-                app.SaveModifications();
-            }
-            bool isStaticBeamPlan = false;
-            bool isDynamicBeamPlan = false;
-            bool isArcBeamPlan = false;
-            bool isSX2MLC = false;
-            bool isHalcyon = false;
-            foreach (var beam in extPlanSetup.Beams)
-            {
-                if (beam.IsSetupField == false && beam.IsImagingTreatmentField == false)
-                {
-                    if (beam.Technique.ToString() == "STATIC")
-                    {
-                        // Here we assume that if one treatment beam is a static beam, then all the beams
-                        // in this treatment plan must be static beams.
-                        isStaticBeamPlan = true;
-                    }
-                    if (beam.Technique.ToString().ToLower().Contains("arc"))
-                    {
-                        // Here we assume that if one treatment beam is a VMAT or arc beam, then all the beams
-                        // in this treatment plan must be VMAT or arc beams.
-                        isArcBeamPlan = true;
-                    }
-                    if (beam.MLC.Model == "SX2")
-                    {
-                        // Here we assume that it is a Halcyon or Ethos linac, because the "SX2" MLC only
-                        // appears on such linacs.
-                        isSX2MLC = true;
-                    }
-                    if (beam.TreatmentUnit.MachineModel == "RDS")
-                    {
-                        // Here we assume that it is a Halcyon or Ethos linac
-                        isHalcyon = true;
-                    }
-                }
-            }
             if (isHalcyon && isArcBeamPlan)  // this plan has arc beams on a Halcyon or Ethos
             {
                 ExternalBeamMachineParameters[] machineParameters = new ExternalBeamMachineParameters[numTxBeams];
@@ -408,6 +361,7 @@ namespace PlanRotation
                 VVector[] isocenterPosition = new VVector[numTxBeams];
                 VRect<double>[] jawPositions = new VRect<double>[numTxBeams];
                 double[] weightFactor = new double[numTxBeams];
+                MetersetValue[] meterset = new MetersetValue[numTxBeams];
                 float[][,] leafPositions = new float[numTxBeams][,];
                 var cpsList = new ArrayList();
                 int indexTxBeams = 0;
@@ -417,11 +371,12 @@ namespace PlanRotation
                     {
                         continue;
                     }
-                    using (StreamWriter w = File.AppendText(logName))  // record some log data
+                    using (StreamWriter w = File.AppendText(logName))  // log original beam data
                     {
                         w.AutoFlush = true;
-                        string log = $"Analyzing beam: {beam.Id}: \"{beam.Name}\". Technique: {beam.Technique.Id}. ";
-                        log += $"It has {beam.ControlPoints.Count} control points.";
+                        string log = $"Analyzing beam: \"{beam.Id}\" (name: \"{beam.Name}\"). Technique: \"{beam.Technique.Id}\".";
+                        log += $" Control point number = {beam.ControlPoints.Count}.";
+                        log += $" Weight factor = {beam.WeightFactor}.";
                         Log(log, w);
                         foreach (var cps in beam.ControlPoints)
                         {
@@ -430,25 +385,31 @@ namespace PlanRotation
                             log += $"X2 Jaw = {cps.JawPositions.X2} mm; ";
                             log += $"Y1 Jaw = {cps.JawPositions.Y1} mm; ";
                             log += $"Y2 Jaw = {cps.JawPositions.Y2} mm; ";
-                            log += $"Meterweight = {cps.MetersetWeight}\n";
+                            log += $"Meterweight = {cps.MetersetWeight}, ";
                             float[,] leaves = cps.LeafPositions;
-                            log += $"{leaves.Length} leaf positions are found. ";
-                            log += $"Leaf position array rank: {leaves.Rank}. ";
+                            log += $"{leaves.Length} leaf positions. ";
+                            log += $"Leaf position array rank: {leaves.Rank}.";
                             for (int i = 0; i < leaves.Rank; i++)
                             {
-                                log += $"Array length at dimension {i}: {leaves.GetLength(i)}";
+                                log += $" Array length at dimension {i}: {leaves.GetLength(i)}";
                             }
                             Log(log, w);
-                            log = "";
                             for (int i = 0; i < leaves.GetLength(0); i++)
                             {
-                                log += $"[{i}, x]: ";
+                                log = $"[{i}, x]: ";
                                 for (int j = 0; j < leaves.GetLength(1); j++)
                                 {
-                                    log += $"{leaves[i, j]}, ";
+                                    log += $"{string.Format("{0, 7:##0.00}", leaves[i, j])}";
+                                    if (j < leaves.GetLength(1) - 1)
+                                    {
+                                        log += ", ";
+                                    }
+                                    else
+                                    {
+                                        Log(log, w);
+                                    }
                                 }
                             }
-                            Log(log, w);
                         }
                     }
                     ExternalBeamTreatmentUnit machine = beam.TreatmentUnit;
@@ -469,6 +430,7 @@ namespace PlanRotation
                     }
                     mlcType[indexTxBeams] = beam.MLCPlanType;
                     weightFactor[indexTxBeams] = beam.WeightFactor;
+                    meterset[indexTxBeams] = beam.Meterset;
                     machineParameters[indexTxBeams] = new ExternalBeamMachineParameters(machineID[indexTxBeams], energyModeId[indexTxBeams],
                         doseRate[indexTxBeams], technique[indexTxBeams], primaryFluenceModeId[indexTxBeams]);
                     machineParameters[indexTxBeams].MLCId = @"SX2 MLC";
@@ -502,67 +464,52 @@ namespace PlanRotation
                     VRect<double> currentJaws = jawPositions[indexTxBeams];
                     VRect<double> newJaws = new VRect<double>(-currentJaws.X2, -currentJaws.Y2, -currentJaws.X1, -currentJaws.Y1);
                     jawPositions[indexTxBeams] = newJaws;
-                    List<CPModel> cpList = new List<CPModel>();
-                    float icp = 0;
-                    foreach (var cps in beam.ControlPoints)
+                    if (collimatorAngle[indexTxBeams] >= 90 && collimatorAngle[indexTxBeams] <= 270)
                     {
-                        float[,] currentLeaves = cps.LeafPositions;
-                        float[,] newLeaves = Rotated(cps.LeafPositions);
-                        if (icp < 2)
+                        collimatorAngle[indexTxBeams] += 180;
+                        if (collimatorAngle[indexTxBeams] >= 360)
                         {
-                            for (int i = 0; i < 2; i++)
-                            {
-                                Console.Write($"i={i}\nL1: ");
-                                for (int j = 0; j < 57; j++)
-                                {
-                                    if (j == 28)
-                                    {
-                                        Console.Write("\nL2: ");
-                                    }
-                                    Console.Write($"{cps.LeafPositions[i, j]} ");
-                                }
-                                Console.WriteLine("");
-                            }
+                            collimatorAngle[indexTxBeams] = collimatorAngle[indexTxBeams] - 360;
                         }
-                        if (icp < 2)
+                        List<CPModel> cpList = new List<CPModel>();
+                        foreach (var cps in beam.ControlPoints)
                         {
-                            Console.WriteLine("Updated leaves: ");
-                            for (int i = 0; i < 2; i++)
+                            int numLeafPairs = cps.LeafPositions.GetLength(1);
+                            cpList.Add(new CPModel(numLeafPairs)
                             {
-                                Console.Write($"i={i}\nL1: ");
-                                for (int j = 0; j < 57; j++)
-                                {
-                                    if(j == 28)
-                                    {
-                                        Console.Write("\nL2: ");
-                                    }
-                                    Console.Write($"{newLeaves[i, j]} ");
-                                }
-                                Console.WriteLine("");
-                            }
+                                GantryAngle = cps.GantryAngle,
+                                JawPositions = cps.JawPositions,
+                                MetersetWeight = cps.MetersetWeight,
+                                CollimatorAngle = cps.CollimatorAngle,
+                                MLCPositions = cps.LeafPositions
+                            });
                         }
-                        cpList.Add(new CPModel
-                        {
-                            GantryAngle = cps.GantryAngle,
-                            JawPositions = new VRect<double>(-cps.JawPositions.X2, -cps.JawPositions.Y2, -cps.JawPositions.X1, -cps.JawPositions.Y1),
-                            MetersetWeight = cps.MetersetWeight,
-                            CollimatorAngle = cps.CollimatorAngle,
-                            MLCPositions = newLeaves
-                        });
-                        icp++;
+                        cpsList.Add(cpList);
                     }
-                    cpsList.Add(cpList);
+                    else
+                    {
+                        List<CPModel> cpList = new List<CPModel>();
+                        float icp = 0;
+                        foreach (var cps in beam.ControlPoints)
+                        {
+                            float[,] currentLeaves = cps.LeafPositions;
+                            float[,] newLeaves = Rotated(cps.LeafPositions);
+                            cpList.Add(new CPModel
+                            {
+                                GantryAngle = cps.GantryAngle,
+                                JawPositions = new VRect<double>(-cps.JawPositions.X2, -cps.JawPositions.Y2, -cps.JawPositions.X1, -cps.JawPositions.Y1),
+                                MetersetWeight = cps.MetersetWeight,
+                                CollimatorAngle = cps.CollimatorAngle,
+                                MLCPositions = newLeaves
+                            });
+                            icp++;
+                        }
+                        cpsList.Add(cpList);
+                    }
                     indexTxBeams++;
                 }
-                // create new beams with rotated geometry
-                for (int idxTxBeam = 0; idxTxBeam < numTxBeams; idxTxBeam++)
+                for (int idxTxBeam = 0; idxTxBeam < numTxBeams; idxTxBeam++) // create new beams with rotated geometry
                 {
-                    using (StreamWriter w = File.AppendText(logName))
-                    {
-                        w.AutoFlush = true;
-                        string log = $"Creating a new rotated beam for beam: \"{beamId[idxTxBeam]}\"";
-                        Log(log, w);
-                    }
                     // ESAPI manual shows that the number of meterset weight items define the number of created control points.
                     List<CPModel> cpList = (List<CPModel>)cpsList[idxTxBeam];
                     var metersetWeights = from cp in cpList select cp.MetersetWeight;
@@ -572,22 +519,26 @@ namespace PlanRotation
                     BeamParameters bParam = newBeam.GetEditableParameters();
                     for (int indCP = 0; indCP < cpList.Count; indCP++)
                     {
-                        /*
-                        if (indCP < 2)
+                        using (StreamWriter w = File.AppendText(logName))  // log new beam data
                         {
+                            w.AutoFlush = true;
+                            string log = $"New control point data for control point {indCP}: ";
+                            log += $"Gantry {bParam.ControlPoints.ElementAt(indCP).GantryAngle} Collimator {bParam.ControlPoints.ElementAt(indCP).CollimatorAngle}";
+                            Log(log, w);
                             for (int i = 0; i < 2; i++)
                             {
-                                Console.Write($"i={i} ");
+                                log = "";
+                                log += $"[{i}, x]: ";
                                 for (int j = 0; j < 57; j++)
                                 {
-                                    Console.Write($"{cpList[indCP].MLCPositions[i, j]} ");
+                                    log += $"{string.Format("{0, 7:##0.00}", cpList[indCP].MLCPositions[i, j])} ";
                                 }
-                                Console.WriteLine("");
+                                Log(log, w);
                             }
                         }
-                        */
-//                        bParam.ControlPoints.ElementAt(indCP).JawPositions = cpList[indCP].JawPositions;
+                        //                        bParam.ControlPoints.ElementAt(indCP).JawPositions = cpList[indCP].JawPositions;
                         bParam.ControlPoints.ElementAt(indCP).LeafPositions = cpList[indCP].MLCPositions;
+                        bParam.WeightFactor = weightFactor[idxTxBeam];
                         try
                         {
                             newBeam.ApplyParameters(bParam);
@@ -597,12 +548,17 @@ namespace PlanRotation
                             Console.WriteLine("Exception: \n" + ex.ToString());
                         }
                     }
-                    //                    bParam.WeightFactor = weightFactor[idxTxBeam];
                     newBeam.Name = beamName[idxTxBeam];
                     newBeamId[idxTxBeam] = newBeam.Id;
+                    using (StreamWriter w = File.AppendText(logName))
+                    {
+                        w.AutoFlush = true;
+                        string log = $"A new beam for original beam: \"{beamId[idxTxBeam]}\" was created with new beam ID: \"{newBeam.Id}\" (name: \"{newBeam.Name}\").";
+                        Log(log, w);
+                    }
                 }
-                // Remove the old treatment beams.
-                foreach (string eachTxBeamId in beamId)
+                bool originalBeamsRemoved = true;
+                foreach (string eachTxBeamId in beamId)  // Remove the original treatment beams.
                 {
                     try
                     {
@@ -613,50 +569,78 @@ namespace PlanRotation
                         string log = e.ToString();
                         using (StreamWriter w = File.AppendText(logName))
                         {
+                            Log("Exception encountered in beam removal. ", w);
                             w.AutoFlush = true;
                             Log(log, w);
                         }
                         Console.Error.WriteLine($"Failed to remove one existing beam: \"{eachTxBeamId}\". Please remove it manually.");
+                        originalBeamsRemoved = false;
                     }
                 }
-                // Calculate plan dose with the new beams
-                try
+                if (originalBeamsRemoved)
                 {
-                    // first create a <beamID, beam meterset> list as preset values.
-                    List<KeyValuePair<string, MetersetValue>> presetValues = new List<KeyValuePair<string, MetersetValue>>();
-                    // create new beams with rotated geometry
-                    for (int idxTxBeam = 0; idxTxBeam < numTxBeams; idxTxBeam++)
+                    try  // Calculate plan dose with the new beams
                     {
-                        presetValues.Add(new KeyValuePair<string, MetersetValue>(newBeamId[idxTxBeam],
-                            extPlanSetup.Beams.FirstOrDefault(b => b.Id == beamId[idxTxBeam]).Meterset));
+                        WriteInColor("Do you want to calculate dose for this updated plan? (Y/N): ", Console.ForegroundColor);
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        string toCalcDose = Console.ReadLine();
+                        Console.ResetColor();
+                        if (toCalcDose.ToLower() == "y")
+                        {
+                            bool presetValid = true;
+                            for (int idxTxBeam = 0; idxTxBeam < numTxBeams; idxTxBeam++)
+                            {
+                                if (Double.IsNaN(meterset[idxTxBeam].Value))
+                                {
+                                    presetValid = false;
+                                }
+                            }
+                            if (presetValid)
+                            {
+                                WriteInColor("Do you want to calculate dose with preset MU values in the original plan? (Y/N): ", Console.ForegroundColor);
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                string usePreset = Console.ReadLine();
+                                Console.ResetColor();
+                                if (usePreset.ToLower() == "y")
+                                {
+                                    List<KeyValuePair<string, MetersetValue>> presetValues = new List<KeyValuePair<string, MetersetValue>>();
+                                    for (int idxTxBeam = 0; idxTxBeam < numTxBeams; idxTxBeam++)
+                                    {
+                                        presetValues.Add(new KeyValuePair<string, MetersetValue>(newBeamId[idxTxBeam], meterset[idxTxBeam]));
+                                        WriteInColor($"Meterset for \"{newBeamId[idxTxBeam]}\": {string.Format("{0:0.##}", meterset[idxTxBeam].Value)} {meterset[idxTxBeam].Unit}\n", ConsoleColor.Yellow);
+                                    }
+                                    WriteInColor("Calculating plan dose. This may take a few minutes.\n", Console.ForegroundColor);
+                                    extPlanSetup.CalculateDoseWithPresetValues(presetValues);
+                                }
+                                else
+                                {
+                                    WriteInColor("Calculating plan dose. This may take a few minutes.\n", Console.ForegroundColor);
+                                    extPlanSetup.CalculateDose();
+                                }
+                            }
+                            else
+                            {
+                                WriteInColor("Original fields do not have valid meterset.\n", ConsoleColor.Yellow);
+                                WriteInColor("Calculating plan dose. This may take a few minutes.\n", Console.ForegroundColor);
+                                extPlanSetup.CalculateDose();
+                            }
+                        }
                     }
-                    extPlanSetup.CalculateDoseWithPresetValues(presetValues);
+                    catch (Exception e)
+                    {
+                        string log = e.ToString();
+                        using (StreamWriter w = File.AppendText(logName))
+                        {
+                            Log("Exception encountered in dose calculation. ", w);
+                            w.AutoFlush = true;
+                            Log(log, w);
+                        }
+                        Console.Error.WriteLine("Failed to calculate plan dose. Please do it manually.");
+                    }
                 }
-                catch (Exception e)
+                else
                 {
-                    string log = e.ToString();
-                    using (StreamWriter w = File.AppendText(logName))
-                    {
-                        w.AutoFlush = true;
-                        Log(log, w);
-                    }
-                    Console.Error.WriteLine("Failed to calculate plan dose. Please do it manually.");
-                }
-            }
-//            if (isHalcyon && isArcBeamPlan)  // this plan has arc beams on a Halcyon or Ethos
-            if (1 == 0)
-            {
-                Console.WriteLine("Halcyon arc plan.");
-                var newPlan = extPlanSetup.Course.CopyPlanSetup(extPlanSetup);
-                newPlan.Id = $"rot_{extPlanSetup.Id}";
-                foreach (var bm in newPlan.Beams.Where(bm_ => !(bm_.IsSetupField || bm_.IsImagingTreatmentField)))
-                {
-                    var bPars = bm.GetEditableParameters();
-                    foreach (var cpp in bPars.ControlPoints)
-                    {
-                        cpp.LeafPositions = Flipped(cpp.LeafPositions);
-                    }
-                    bm.ApplyParameters(bPars);
+                    WriteInColor("INFO: Since original beams were not removed, dose calculation is not performed.\n", ConsoleColor.Yellow);
                 }
             }
             if (isHalcyon && isStaticBeamPlan)  // this plan has static beams on a Halcyon or Ethos
@@ -732,8 +716,7 @@ namespace PlanRotation
                     }
                 }
             }
-//            if (isSX2MLC && isStaticBeamPlan)  // this plan has static beams on a Halcyon or Ethos
-            if (1 == 0)
+            if (isSX2MLC && isStaticBeamPlan)  // this plan has static beams on a Halcyon or Ethos
             {
                 ExternalBeamMachineParameters[] machineParameters = new ExternalBeamMachineParameters[numTxBeams];
                 string[] machineID = new string[numTxBeams];
